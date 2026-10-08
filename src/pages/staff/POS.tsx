@@ -128,9 +128,9 @@ export default function POS() {
   };
 
   return (
-    <div className="flex h-full flex-col lg:flex-row">
+    <div className="flex flex-col lg:h-full lg:flex-row">
       {/* Menu */}
-      <section className="flex min-h-0 flex-1 flex-col">
+      <section className="flex flex-col lg:min-h-0 lg:flex-1">
         <div className="space-y-3 border-b border-cream-200 bg-cream-50 p-4">
           <label className="relative block">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-espresso-600" />
@@ -148,7 +148,7 @@ export default function POS() {
             ))}
           </div>
         </div>
-        <div className="grid flex-1 auto-rows-min grid-cols-2 gap-3 overflow-y-auto p-4 sm:grid-cols-3 xl:grid-cols-4">
+        <div className="grid auto-rows-min grid-cols-2 gap-3 p-4 sm:grid-cols-3 lg:flex-1 lg:overflow-y-auto xl:grid-cols-4">
           {!menu && <Spinner />}
           {items.map((item) => (
             <button
@@ -169,7 +169,7 @@ export default function POS() {
       </section>
 
       {/* Ticket */}
-      <aside className="flex max-h-[70vh] w-full shrink-0 flex-col border-l border-cream-200 bg-white lg:max-h-none lg:w-[26rem]">
+      <aside id="pos-ticket" className="flex w-full shrink-0 flex-col border-t border-cream-200 bg-white lg:w-[26rem] lg:border-l lg:border-t-0">
         <div className="space-y-3 border-b border-cream-200 p-4">
           <Segmented value={type} onChange={setType} options={[{ value: 'dine-in', label: 'Dine in' }, { value: 'takeout', label: 'Takeout' }, { value: 'pickup', label: 'Pickup' }]} />
           <div className="grid grid-cols-[1fr_5rem] gap-2">
@@ -185,7 +185,7 @@ export default function POS() {
           )}
         </div>
 
-        <ul className="min-h-24 flex-1 divide-y divide-cream-100 overflow-y-auto px-4">
+        <ul className="min-h-24 divide-y divide-cream-100 px-4 lg:flex-1 lg:overflow-y-auto">
           {lines.length === 0 && <li className="py-10 text-center text-sm text-espresso-600">Tap items to start an order.</li>}
           {lines.map((l) => (
             <li key={l.key} className="flex items-center gap-2 py-2.5">
