@@ -1,0 +1,160 @@
+@import 'tailwindcss';
+
+/* Palette taken from Lore's logo and photos: espresso brown, terracotta lettering, clay walls, cream. */
+@theme {
+  --color-espresso-950: #160b07;
+  --color-espresso-900: #22120c;
+  --color-espresso-800: #351d14;
+  --color-espresso-700: #4b2a1d;
+  --color-espresso-600: #6b4030;
+  --color-clay-200: #f1d2c3;
+  --color-clay-300: #e4ae95;
+  --color-clay-400: #d58767;
+  --color-clay-500: #c46a4f;
+  --color-clay-600: #a8523a;
+  --color-clay-700: #86402d;
+  --color-cream-50: #fcf8f3;
+  --color-cream-100: #f6eee4;
+  --color-cream-200: #ecdccb;
+  --color-cream-300: #dcc4ab;
+
+  --font-display: 'Cormorant Garamond', ui-serif, Georgia, serif;
+  --font-sans: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+
+  --animate-pop: pop 0.25s ease-out;
+  --animate-fade-up: fade-up 0.5s ease-out both;
+  --animate-pulse-ring: pulse-ring 1.6s ease-out infinite;
+  --animate-marquee: marquee 40s linear infinite;
+  --animate-slow-zoom: slow-zoom 18s ease-out both;
+
+  @keyframes pop {
+    0% { transform: scale(0.96); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  @keyframes fade-up {
+    0% { transform: translateY(12px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes slow-zoom {
+    from { transform: scale(1.08); }
+    to { transform: scale(1); }
+  }
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgb(196 106 79 / 0.55); }
+    100% { box-shadow: 0 0 0 14px rgb(196 106 79 / 0); }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-cream-50 font-sans text-espresso-900 antialiased;
+  }
+  /* Cormorant defaults to old-style figures; prices and order numbers read better lining. */
+  .font-display {
+    font-variant-numeric: lining-nums;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-clay-500;
+  }
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-clay-500 text-white shadow-sm hover:bg-clay-600;
+}
+@utility btn-dark {
+  @apply btn bg-espresso-900 text-cream-50 hover:bg-espresso-800;
+}
+@utility btn-ghost {
+  @apply btn text-espresso-800 hover:bg-cream-200/70;
+}
+@utility btn-outline {
+  @apply btn border border-cream-300 bg-white text-espresso-800 hover:border-clay-400 hover:text-clay-700;
+}
+@utility input {
+  @apply w-full rounded-xl border border-cream-300 bg-white px-3.5 py-2.5 text-sm text-espresso-900 placeholder:text-espresso-600/50 focus:border-clay-500 focus:outline-none focus:ring-2 focus:ring-clay-500/20;
+}
+@utility label {
+  @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-espresso-600;
+}
+@utility card {
+  @apply rounded-2xl border border-cream-200 bg-white shadow-[0_1px_2px_rgb(34_18_12/0.04)];
+}
+@utility chip {
+  @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold;
+}
+@utility eyebrow {
+  @apply text-xs font-semibold uppercase tracking-[0.25em] text-clay-500;
+}
+
+/* Soft paper grain for warm sections. */
+@utility grain {
+  position: relative;
+  isolation: isolate;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.35;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.25 0 0 0 0 0.15 0 0 0 0.18 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+/* Dotted leader between a menu item and its price, like a printed menu board. */
+@utility leader {
+  flex: 1;
+  margin: 0 0.5rem;
+  border-bottom: 1.5px dotted currentColor;
+  opacity: 0.35;
+  transform: translateY(-0.3em);
+}
+
+/* Scroll reveal (see Reveal component). */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .animate-marquee,
+  .animate-slow-zoom {
+    animation: none;
+  }
+}
+
+/* Receipt printing: only the receipt is printed, sized for 58/80 mm thermal paper. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #print-receipt,
+  #print-receipt * {
+    visibility: visible;
+  }
+  #print-receipt {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 72mm;
+  }
+}
