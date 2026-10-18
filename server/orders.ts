@@ -1,8 +1,8 @@
 import { randomBytes } from 'node:crypto';
-import type { Order, OrderLine, OrderRequest, OrderStatus, PaymentMethod, Totals } from '../src/shared/types';
-import { PAYMENT_FEES, PESOS_PER_POINT, SENIOR_PWD_RATE, priceLine, round2 } from '../src/shared/pricing';
-import { ONLINE_PAYMENT_METHODS, businessDate, storeStatus } from '../src/shared/store-info';
-import * as db from './db';
+import type { Order, OrderLine, OrderRequest, OrderStatus, PaymentMethod, Totals } from '../src/shared/types.js';
+import { PAYMENT_FEES, PESOS_PER_POINT, SENIOR_PWD_RATE, priceLine, round2 } from '../src/shared/pricing.js';
+import { ONLINE_PAYMENT_METHODS, businessDate, storeStatus } from '../src/shared/store-info.js';
+import * as db from './db.js';
 
 export class HttpError extends Error {
   constructor(public status: number, message: string) {

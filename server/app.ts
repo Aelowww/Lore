@@ -1,13 +1,13 @@
 import express, { type NextFunction, type Request, type Response } from 'express';
 import { randomBytes } from 'node:crypto';
 import { getAuth } from 'firebase-admin/auth';
-import { initFirebaseAdmin } from './firebase-admin';
-import type { BoardData, Inquiry, MenuItem, Order, OrderRequest, Report, StaffRole, Voucher } from '../src/shared/types';
-import { businessDate, manilaParts, storeStatus } from '../src/shared/store-info';
-import { round2 } from '../src/shared/pricing';
-import * as db from './db';
-import { HttpError, applyCounterPayment, createOrder, normalizePhone, payOnline, publicOrder, quote, refund, setStatus } from './orders';
-import { CATEGORIES } from './seed';
+import { initFirebaseAdmin } from './firebase-admin.js';
+import type { BoardData, Inquiry, MenuItem, Order, OrderRequest, Report, StaffRole, Voucher } from '../src/shared/types.js';
+import { businessDate, manilaParts, storeStatus } from '../src/shared/store-info.js';
+import { round2 } from '../src/shared/pricing.js';
+import * as db from './db.js';
+import { HttpError, applyCounterPayment, createOrder, normalizePhone, payOnline, publicOrder, quote, refund, setStatus } from './orders.js';
+import { CATEGORIES } from './seed.js';
 
 initFirebaseAdmin();
 

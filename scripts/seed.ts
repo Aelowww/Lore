@@ -1,8 +1,8 @@
 // First-time setup of a new Firebase project:  npm run seed
 // Adds the starting menu and promo codes, and creates the staff accounts with new PINs.
 // Safe to run again: it never overwrites an existing menu or staff account.
-import '../server/env';
-import { publishMenuChange, seed } from '../server/db';
+import '../server/env.js';
+import { publishMenuChange, seed } from '../server/db.js';
 
 const created = await seed();
 await publishMenuChange();

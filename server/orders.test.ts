@@ -1,13 +1,13 @@
 import { before, test } from 'node:test';
 import assert from 'node:assert/strict';
-import type { OrderRequest } from '../src/shared/types';
+import type { OrderRequest } from '../src/shared/types.js';
 
 // Tests use a throwaway in-memory copy of the database instead of Firestore.
 process.env.LORE_DB = 'memory';
 process.env.STAFF_CASHIER_PIN = '1111';
 process.env.STAFF_MANAGER_PIN = '2222';
-const db = await import('./db');
-const { HttpError, applyCounterPayment, createOrder, payOnline, quote } = await import('./orders');
+const db = await import('./db.js');
+const { HttpError, applyCounterPayment, createOrder, payOnline, quote } = await import('./orders.js');
 
 before(() => db.seed());
 

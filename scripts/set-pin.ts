@@ -1,6 +1,6 @@
 // Change a staff PIN:  npm run set-pin -- manager 4821
-import '../server/env';
-import { setStaffPin } from '../server/db';
+import '../server/env.js';
+import { setStaffPin } from '../server/db.js';
 
 const [id, pin] = process.argv.slice(2);
 if (!id || !pin) {

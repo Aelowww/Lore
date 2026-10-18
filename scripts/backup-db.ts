@@ -1,8 +1,8 @@
 // Save a copy of every Firestore collection to backups/lore-<date>.json:  npm run backup
-import '../server/env';
+import '../server/env.js';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { dumpAll } from '../server/db';
+import { dumpAll } from '../server/db.js';
 
 const data = await dumpAll();
 mkdirSync('backups', { recursive: true });

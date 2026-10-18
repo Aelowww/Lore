@@ -1,6 +1,6 @@
 // Upload firestore.rules to Firebase:  npm run deploy:rules
 // Uses the same service account key as the server, so no `firebase login` is needed.
-import '../server/env';
+import '../server/env.js';
 import { readFileSync } from 'node:fs';
 import { GoogleAuth } from 'google-auth-library';
 

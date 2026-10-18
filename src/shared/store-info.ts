@@ -1,4 +1,4 @@
-import type { PaymentMethod } from './types';
+import type { PaymentMethod } from './types.js';
 
 export const STORE = {
   name: 'Lore Coffee Station',

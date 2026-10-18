@@ -1,4 +1,4 @@
-import type { MenuItem, OptionGroup, Voucher } from '../src/shared/types';
+import type { MenuItem, OptionGroup, Voucher } from '../src/shared/types.js';
 
 // Menu items are taken from Lore Coffee Station's Instagram posts.
 // Prices are placeholders — update them from Staff › Menu once you have the real price list.

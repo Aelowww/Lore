@@ -1,4 +1,4 @@
-import type { CartLineInput, MenuItem, OrderLine, PaymentMethod, Selection } from './types';
+import type { CartLineInput, MenuItem, OrderLine, PaymentMethod, Selection } from './types.js';
 
 /** Cashless processing fees, as posted by Lore on Instagram (QR 1%, card 3%). */
 export const PAYMENT_FEES: Record<PaymentMethod, number> = { cash: 0, qr: 0.01, card: 0.03, bank: 0 };

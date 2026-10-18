@@ -1,10 +1,10 @@
 // Starts the API, plus the built website when dist/ exists (npm run build).
-// Locally: npm run dev (API on :3001, website on :5180). On Render: npm start.
-import './env';
+// Locally: npm run dev (API on :3001, website on :5180). On Vercel the API runs from api/index.ts instead.
+import './env.js';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import express from 'express';
-import { app } from './app';
+import { app } from './app.js';
 
 const dist = path.resolve('dist');
 if (existsSync(dist)) {

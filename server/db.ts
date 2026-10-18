@@ -1,8 +1,8 @@
 import { randomBytes, randomInt, scryptSync, timingSafeEqual } from 'node:crypto';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
-import { initFirebaseAdmin } from './firebase-admin';
-import type { BoardData, Inquiry, MenuItem, Order, StaffRole, Voucher } from '../src/shared/types';
-import { SEED_MENU, SEED_STAFF, SEED_VOUCHERS } from './seed';
+import { initFirebaseAdmin } from './firebase-admin.js';
+import type { BoardData, Inquiry, MenuItem, Order, StaffRole, Voucher } from '../src/shared/types.js';
+import { SEED_MENU, SEED_STAFF, SEED_VOUCHERS } from './seed.js';
 
 /*
  * All data lives in Cloud Firestore. Collections:
