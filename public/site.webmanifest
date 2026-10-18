@@ -1,0 +1,12 @@
+{
+  "name": "Lore Coffee Station",
+  "short_name": "Lore",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#24130d",
+  "background_color": "#24130d",
+  "display": "standalone",
+  "start_url": "/"
+}
