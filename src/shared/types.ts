@@ -148,7 +148,6 @@ export interface Inquiry {
 export type StaffRole = 'cashier' | 'manager';
 
 export interface StaffSession {
-  token: string;
   name: string;
   role: StaffRole;
 }

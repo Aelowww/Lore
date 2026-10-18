@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Calendar, Mail, MapPin, Phone, Users } from 'lucide-react';
 import clsx from 'clsx';
 import { api } from '../../lib/api';
-import { socket } from '../../lib/socket';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { firestore } from '../../lib/firebase';
 import type { Inquiry, InquiryStatus } from '../../shared/types';
 import { ErrorNote, Spinner } from '../../components/ui';
 
@@ -20,11 +21,8 @@ export default function Inquiries() {
 
   useEffect(() => {
     const load = () => api<Inquiry[]>('/staff/inquiries').then(setList).catch((e) => setError(e.message));
-    load();
-    socket.on('inquiry', load);
-    return () => {
-      socket.off('inquiry', load);
-    };
+    // Reload whenever an inquiry is added or changed (the first snapshot doubles as the initial load).
+    return onSnapshot(collection(firestore, 'inquiries'), load, (err) => setError(err.message));
   }, []);
 
   const setStatus = async (i: Inquiry, status: InquiryStatus) => {

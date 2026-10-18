@@ -290,7 +290,7 @@ function PointsAndPayments() {
   const methods = [
     { icon: Banknote, name: 'Cash', note: 'At the counter' },
     { icon: QrCode, name: 'QR Ph · GCash · Maya', note: '1% fee' },
-    { icon: CreditCard, name: 'Credit / Debit card', note: '3% fee' },
+    { icon: CreditCard, name: 'Credit / Debit card', note: '3% fee · at the counter' },
     { icon: Landmark, name: 'Bank transfer', note: 'No fee' },
   ];
   return (

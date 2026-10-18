@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { socket, useChannel, chime } from '../lib/socket';
+import { chime, watchDoc } from '../lib/live';
 import type { BoardData } from '../shared/types';
 import { orderNo } from '../components/ui';
 import { Wordmark } from '../components/SiteLayout';
@@ -9,18 +9,16 @@ export default function Board() {
   const [data, setData] = useState<BoardData>({ preparing: [], ready: [] });
   const prevReady = useRef<number[]>([]);
   const [clock, setClock] = useState(new Date());
-  useChannel('board');
-
   useEffect(() => {
     const onBoard = (d: BoardData) => {
       if (d.ready.some((n) => !prevReady.current.includes(n))) chime();
       prevReady.current = d.ready;
       setData(d);
     };
-    socket.on('board', onBoard);
+    const unwatch = watchDoc<BoardData>('public/board', onBoard);
     const t = setInterval(() => setClock(new Date()), 30_000);
     return () => {
-      socket.off('board', onBoard);
+      unwatch();
       clearInterval(t);
     };
   }, []);

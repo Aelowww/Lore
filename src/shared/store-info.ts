@@ -1,3 +1,5 @@
+import type { PaymentMethod } from './types';
+
 export const STORE = {
   name: 'Lore Coffee Station',
   tagline: 'Coffee · Anytime · Everywhere',
@@ -54,14 +56,19 @@ export function storeStatus(date = new Date()) {
 }
 
 /**
- * Where customers send QR / bank payments. PLACEHOLDERS — replace with the shop's real details.
- * Put the shop's static QR Ph image in public/images (e.g. qrph.png) and set qrImage to '/images/qrph.png';
- * until then a demo QR is generated.
+ * Where customers send QR / bank payments. An online method only appears at checkout once it's filled in here.
+ * - QR: put the shop's static QR Ph image in public/images (e.g. qrph.png) and set qrImage to '/images/qrph.png'.
+ * - Bank: add each account, e.g. { bank: 'BPI', accountName: 'Lore Coffee Station', accountNumber: '1234-5678-90' }.
+ * Card payments are only taken at the counter terminal until an online gateway (PayMongo, Xendit, Maya) is connected.
  */
 export const PAYMENT_ACCOUNTS = {
   qrImage: null as string | null,
-  bank: [
-    { bank: 'BPI', accountName: 'Lore Coffee Station', accountNumber: '0000-0000-00 (placeholder)' },
-    { bank: 'BDO', accountName: 'Lore Coffee Station', accountNumber: '0000-0000-0000 (placeholder)' },
-  ],
+  bank: [] as { bank: string; accountName: string; accountNumber: string }[],
 };
+
+/** Payment methods customers can choose when ordering online, based on what's set up above. */
+export const ONLINE_PAYMENT_METHODS: PaymentMethod[] = [
+  ...(PAYMENT_ACCOUNTS.qrImage ? (['qr'] as const) : []),
+  ...(PAYMENT_ACCOUNTS.bank.length ? (['bank'] as const) : []),
+  'cash',
+];

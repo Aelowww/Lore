@@ -7,35 +7,44 @@
     "dev": "concurrently -k -n api,web -c yellow,cyan \"npm:dev:server\" \"npm:dev:client\"",
     "dev:server": "tsx watch --clear-screen=false server/index.ts",
     "dev:client": "vite",
-    "build": "tsc && vite build",
-    "start": "tsx server/index.ts",
-    "optimize-images": "node scripts/optimize-images.mjs"
+    "build": "npm run build:web && esbuild server/index.ts --bundle --platform=node --target=node22 --format=esm --packages=external --outfile=build/server.js",
+    "optimize-images": "node scripts/optimize-images.mjs",
+    "set-pin": "tsx scripts/set-pin.ts",
+    "backup": "tsx scripts/backup-db.ts",
+    "test": "node --import tsx --test \"server/**/*.test.ts\"",
+    "seed": "tsx scripts/seed.ts",
+    "start": "node build/server.js",
+    "deploy:rules": "tsx scripts/deploy-rules.ts",
+    "build:web": "tsc && vite build"
   },
   "dependencies": {
     "clsx": "^2.1.1",
     "express": "^5.2.1",
+    "firebase": "^13.0.0",
+    "firebase-admin": "^14.5.0",
     "lucide-react": "^1.52.0",
-    "qrcode": "^1.5.4",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-router-dom": "^7.18.4",
-    "socket.io": "^4.8.4",
-    "socket.io-client": "^4.8.4",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "@types/express": "^5.0.6",
     "@types/node": "^26.6.4",
-    "@types/qrcode": "^1.5.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
     "concurrently": "^10.0.5",
+    "esbuild": "^0.28.2",
+    "google-auth-library": "^11.3.1",
     "sharp": "^0.35.5",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "^8.3.3"
+  },
+  "engines": {
+    "node": ">=22.5"
   }
 }

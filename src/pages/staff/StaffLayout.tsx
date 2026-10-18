@@ -3,7 +3,9 @@ import { NavLink, Outlet, useOutletContext } from 'react-router-dom';
 import { BarChart3, CalendarHeart, ChefHat, ClipboardList, Delete, LogOut, Monitor, ReceiptText, Tag, UtensilsCrossed, Volume2, VolumeX } from 'lucide-react';
 import clsx from 'clsx';
 import { api } from '../../lib/api';
-import { chime, socket, useChannel } from '../../lib/socket';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { chime } from '../../lib/live';
+import { firestore } from '../../lib/firebase';
 import { useStaff } from '../../store/staff';
 import type { Order, StaffSession } from '../../shared/types';
 import { Wordmark } from '../../components/SiteLayout';
@@ -20,7 +22,7 @@ function PinLogin() {
       setBusy(true);
       setError(null);
       try {
-        login(await api<StaffSession>('/staff/login', { body: { pin: value } }));
+        await login(await api<StaffSession & { customToken: string }>('/staff/login', { body: { pin: value } }));
       } catch (e) {
         setError((e as Error).message);
         pinRef.current = '';
@@ -94,8 +96,8 @@ export interface StaffContext {
 }
 export const useStaffContext = () => useOutletContext<StaffContext>();
 
-/** Active orders kept live over the socket; chimes when a new online order arrives. */
-function useLiveOrders(token: string, sound: boolean) {
+/** Active orders kept live from Firestore; chimes when a new online order arrives. */
+function useLiveOrders(sound: boolean) {
   const [orders, setOrders] = useState<Order[]>([]);
   const soundRef = useRef(sound);
   soundRef.current = sound;
@@ -121,15 +123,24 @@ function useLiveOrders(token: string, sound: boolean) {
       .catch(() => {});
   }, []);
 
-  useChannel('staff', token);
   useEffect(() => {
     reload();
-    socket.on('order', upsert);
-    socket.on('connect', reload);
-    return () => {
-      socket.off('order', upsert);
-      socket.off('connect', reload);
-    };
+    const active = query(collection(firestore, 'orders'), where('status', 'in', ['pending', 'preparing', 'ready']));
+    let first = true;
+    return onSnapshot(
+      active,
+      (snap) => {
+        // Orders already open when the screen loads shouldn't chime.
+        if (first) snap.docs.forEach((d) => seen.current.add(d.id));
+        first = false;
+        for (const change of snap.docChanges()) {
+          const o = change.doc.data() as Order;
+          // A doc leaving the query means it's completed or cancelled; upsert drops inactive orders.
+          upsert(change.type === 'removed' && ['pending', 'preparing', 'ready'].includes(o.status) ? { ...o, status: 'completed' } : o);
+        }
+      },
+      (err) => console.warn('Live orders stopped:', err.message),
+    );
   }, [upsert, reload]);
 
   return { orders, upsert, reload };
@@ -138,7 +149,7 @@ function useLiveOrders(token: string, sound: boolean) {
 function Shell({ session }: { session: StaffSession }) {
   const logout = useStaff((s) => s.logout);
   const [sound, setSound] = useState(true);
-  const { orders, upsert, reload } = useLiveOrders(session.token, sound);
+  const { orders, upsert, reload } = useLiveOrders(sound);
   const waiting = orders.filter((o) => o.status === 'pending' || o.paymentStatus === 'pending_verification').length;
   const manager = session.role === 'manager';
 

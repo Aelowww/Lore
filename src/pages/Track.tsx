@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { api } from '../lib/api';
-import { socket } from '../lib/socket';
+import { watchDoc } from '../lib/live';
 import { recentOrderIds } from '../lib/recent-orders';
 import { peso } from '../shared/pricing';
 import type { Order } from '../shared/types';
@@ -12,16 +12,9 @@ export default function Track() {
   const [orders, setOrders] = useState<Order[] | null>(null);
   useEffect(() => {
     // Follow every listed order so statuses update without a refresh.
-    const ids = recentOrderIds();
-    const join = () => ids.forEach((id) => socket.emit('subscribe', { channel: `order:${id}` }));
     const onOrder = (o: Order) => setOrders((xs) => xs?.map((x) => (x.id === o.id ? o : x)) ?? xs);
-    join();
-    socket.on('connect', join);
-    socket.on('order', onOrder);
-    return () => {
-      socket.off('connect', join);
-      socket.off('order', onOrder);
-    };
+    const unwatch = recentOrderIds().map((id) => watchDoc<Order>(`publicOrders/${id}`, onOrder));
+    return () => unwatch.forEach((u) => u());
   }, []);
 
   useEffect(() => {

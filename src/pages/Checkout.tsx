@@ -1,21 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Banknote, CreditCard, Gift, Landmark, QrCode, Tag, X } from 'lucide-react';
+import { Banknote, Gift, Landmark, QrCode, Tag, X } from 'lucide-react';
 import clsx from 'clsx';
 import { api, useStoreStatus } from '../lib/api';
 import { rememberOrder } from '../lib/recent-orders';
 import { cartSubtotal, toInput, useCart } from '../store/cart';
 import { describeSelections, peso, PAYMENT_FEES } from '../shared/pricing';
-import { storeStatus } from '../shared/store-info';
+import { ONLINE_PAYMENT_METHODS, storeStatus } from '../shared/store-info';
 import type { Order, OrderRequest, OrderType, PaymentMethod, Totals } from '../shared/types';
 import { ErrorNote, Segmented, Spinner } from '../components/ui';
 
-const METHODS: { id: PaymentMethod; label: string; note: string; icon: typeof Banknote }[] = [
+const METHODS = ([
   { id: 'qr', label: 'QR Ph · GCash · Maya', note: '1% fee · pay now', icon: QrCode },
-  { id: 'card', label: 'Credit / Debit card', note: '3% fee · pay now', icon: CreditCard },
   { id: 'bank', label: 'Bank transfer', note: 'No fee · pay now', icon: Landmark },
   { id: 'cash', label: 'Cash at the counter', note: 'No fee · pay when you arrive', icon: Banknote },
-];
+] satisfies { id: PaymentMethod; label: string; note: string; icon: typeof Banknote }[]).filter((m) => ONLINE_PAYMENT_METHODS.includes(m.id));
 
 /** 15-minute pickup slots over the next day and a half, only while the shop is open. */
 function pickupSlots(now = new Date()) {
@@ -45,7 +44,7 @@ export default function Checkout() {
   const [table, setTable] = useState('');
   const [pickupTime, setPickupTime] = useState('');
   const [notes, setNotes] = useState('');
-  const [method, setMethod] = useState<PaymentMethod>('qr');
+  const [method, setMethod] = useState<PaymentMethod>(METHODS[0].id);
   const [voucherInput, setVoucherInput] = useState('');
   const [voucher, setVoucher] = useState('');
   const [points, setPoints] = useState(0);

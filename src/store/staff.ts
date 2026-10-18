@@ -1,7 +1,9 @@
 import { create } from 'zustand';
+import { onAuthStateChanged, signInWithCustomToken, signOut } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 import type { StaffSession } from '../shared/types';
 
-// Stored as plain JSON ({ token, name, role }) because api.ts reads the token directly.
+// Firebase Auth keeps the actual sign-in; this only remembers the name and role for the UI.
 const KEY = 'lore-staff';
 
 function load(): StaffSession | null {
@@ -12,31 +14,40 @@ function load(): StaffSession | null {
   }
 }
 
+function save(session: StaffSession | null) {
+  try {
+    if (session) localStorage.setItem(KEY, JSON.stringify(session));
+    else localStorage.removeItem(KEY);
+  } catch {
+    /* private mode: session lasts for this tab only */
+  }
+}
+
 interface StaffState {
   session: StaffSession | null;
-  login: (s: StaffSession) => void;
+  login: (s: StaffSession & { customToken: string }) => Promise<void>;
   logout: () => void;
 }
 
 export const useStaff = create<StaffState>()((set) => ({
   session: load(),
-  login: (session) => {
-    try {
-      localStorage.setItem(KEY, JSON.stringify(session));
-    } catch {
-      /* private mode: session lasts for this tab only */
-    }
+  login: async ({ customToken, name, role }) => {
+    await signInWithCustomToken(auth, customToken);
+    const session = { name, role };
+    save(session);
     set({ session });
   },
   logout: () => {
-    try {
-      localStorage.removeItem(KEY);
-    } catch {
-      /* ignore */
-    }
+    save(null);
     set({ session: null });
+    signOut(auth).catch(() => {});
   },
 }));
 
-// The server rejected our token (expired or server restarted).
+// Signed out of Firebase (or never finished signing in): drop the remembered session too.
+onAuthStateChanged(auth, (user) => {
+  if (!user && useStaff.getState().session) useStaff.getState().logout();
+});
+
+// The server rejected our sign-in (expired after a shift, or the PIN was changed).
 window.addEventListener('lore:logout', () => useStaff.getState().logout());

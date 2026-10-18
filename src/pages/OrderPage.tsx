@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import QRCode from 'qrcode';
-import { Banknote, Check, CheckCircle2, Clock, Coffee, CreditCard, Landmark, Lock, PartyPopper, QrCode, ShoppingBag, XCircle } from 'lucide-react';
+import { Banknote, Check, CheckCircle2, Clock, Coffee, Landmark, PartyPopper, QrCode, ShoppingBag, XCircle } from 'lucide-react';
 import clsx from 'clsx';
 import { api } from '../lib/api';
-import { socket, useChannel } from '../lib/socket';
+import { watchDoc } from '../lib/live';
 import { describeSelections, peso, PAYMENT_FEES, PAYMENT_LABELS, round2 } from '../shared/pricing';
-import { PAYMENT_ACCOUNTS } from '../shared/store-info';
+import { ONLINE_PAYMENT_METHODS, PAYMENT_ACCOUNTS } from '../shared/store-info';
 import type { Order, PaymentMethod } from '../shared/types';
 import { ErrorNote, PayPill, Segmented, Spinner, fmtTime, orderNo } from '../components/ui';
 
@@ -56,23 +55,13 @@ function Tracker({ order }: { order: Order }) {
   );
 }
 
-function QrPanel({ order, amount }: { order: Order; amount: number }) {
-  const [src, setSrc] = useState<string | null>(PAYMENT_ACCOUNTS.qrImage);
-  useEffect(() => {
-    if (PAYMENT_ACCOUNTS.qrImage) return;
-    QRCode.toDataURL(`LORE COFFEE STATION|ORDER ${orderNo(order.number)}|PHP ${amount.toFixed(2)}|DEMO`, {
-      margin: 1,
-      width: 480,
-      color: { dark: '#22120c', light: '#ffffff' },
-    }).then(setSrc);
-  }, [order.number, amount]);
+function QrPanel({ amount }: { amount: number }) {
   return (
     <div className="flex flex-col items-center gap-3 text-center">
-      {src ? <img src={src} alt="Payment QR code" className="size-56 rounded-2xl border border-cream-200 bg-white p-2" /> : <div className="size-56 animate-pulse rounded-2xl bg-cream-100" />}
+      {PAYMENT_ACCOUNTS.qrImage && <img src={PAYMENT_ACCOUNTS.qrImage} alt="Lore Coffee Station QR Ph code" className="size-56 rounded-2xl border border-cream-200 bg-white p-2" />}
       <p className="text-sm text-espresso-600">
         Scan with GCash, Maya or any bank app that supports QR Ph, pay <strong>{peso(amount)}</strong>, then enter the reference number below.
       </p>
-      {!PAYMENT_ACCOUNTS.qrImage && <p className="chip bg-amber-50 text-amber-800 ring-1 ring-amber-200">Demo QR — the shop’s QR Ph code goes here</p>}
     </div>
   );
 }
@@ -91,51 +80,6 @@ function BankPanel({ amount }: { amount: number }) {
         </div>
       ))}
     </div>
-  );
-}
-
-function CardForm({ onPay, busy }: { onPay: (card: { number: string; expiry: string; cvc: string; name: string }) => void; busy: boolean }) {
-  const [card, setCard] = useState({ number: '', expiry: '', cvc: '', name: '' });
-  const set = (k: keyof typeof card) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    let v = e.target.value;
-    if (k === 'number') v = v.replace(/\D/g, '').slice(0, 19).replace(/(.{4})/g, '$1 ').trim();
-    if (k === 'expiry') v = v.replace(/\D/g, '').slice(0, 4).replace(/^(\d{2})(\d)/, '$1/$2');
-    if (k === 'cvc') v = v.replace(/\D/g, '').slice(0, 4);
-    setCard((c) => ({ ...c, [k]: v }));
-  };
-  return (
-    <form
-      className="space-y-3"
-      onSubmit={(e) => {
-        e.preventDefault();
-        onPay(card);
-      }}
-    >
-      <div>
-        <label className="label" htmlFor="cc-name">Name on card</label>
-        <input id="cc-name" className="input" autoComplete="cc-name" value={card.name} onChange={set('name')} required />
-      </div>
-      <div>
-        <label className="label" htmlFor="cc-number">Card number</label>
-        <input id="cc-number" className="input font-mono" inputMode="numeric" autoComplete="cc-number" placeholder="1234 1234 1234 1234" value={card.number} onChange={set('number')} required />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="label" htmlFor="cc-exp">Expiry</label>
-          <input id="cc-exp" className="input font-mono" inputMode="numeric" autoComplete="cc-exp" placeholder="MM/YY" value={card.expiry} onChange={set('expiry')} required />
-        </div>
-        <div>
-          <label className="label" htmlFor="cc-cvc">CVC</label>
-          <input id="cc-cvc" className="input font-mono" inputMode="numeric" autoComplete="cc-csc" placeholder="123" value={card.cvc} onChange={set('cvc')} required />
-        </div>
-      </div>
-      <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-900 ring-1 ring-amber-200">
-        Demo card gateway — no real charge is made. Test with 4242 4242 4242 4242 (approved) or 4000 0000 0000 0002 (declined), any future expiry and CVC.
-      </p>
-      <button className="btn-primary w-full py-3" disabled={busy}>
-        {busy ? <Spinner className="size-4" /> : <><Lock className="size-4" /> Pay now</>}
-      </button>
-    </form>
   );
 }
 
@@ -204,12 +148,11 @@ function PaymentBox({ order, onUpdate }: { order: Order; onUpdate: (o: Order) =>
       <Segmented
         value={method}
         onChange={switchTo}
-        options={[
+        options={([
           { value: 'qr', label: <span className="flex items-center justify-center gap-1.5"><QrCode className="size-4" /> QR</span> },
-          { value: 'card', label: <span className="flex items-center justify-center gap-1.5"><CreditCard className="size-4" /> Card</span> },
           { value: 'bank', label: <span className="flex items-center justify-center gap-1.5"><Landmark className="size-4" /> Bank</span> },
           { value: 'cash', label: <span className="flex items-center justify-center gap-1.5"><Banknote className="size-4" /> Cash</span> },
-        ]}
+        ] satisfies { value: PaymentMethod; label: React.ReactNode }[]).filter((o) => ONLINE_PAYMENT_METHODS.includes(o.value))}
       />
       {PAYMENT_FEES[method] > 0 && <p className="text-xs text-espresso-600">Includes a {PAYMENT_FEES[method] * 100}% processing fee.</p>}
       {method === 'cash' && order.paymentMethod === 'cash' && (
@@ -225,7 +168,7 @@ function PaymentBox({ order, onUpdate }: { order: Order; onUpdate: (o: Order) =>
             pay({ reference });
           }}
         >
-          {method === 'qr' ? <QrPanel order={order} amount={amount} /> : <BankPanel amount={amount} />}
+          {method === 'qr' ? <QrPanel amount={amount} /> : <BankPanel amount={amount} />}
           <div>
             <label className="label" htmlFor="ref">Reference number</label>
             <input id="ref" className="input font-mono" value={reference} onChange={(e) => setReference(e.target.value.replace(/\s/g, ''))} placeholder="e.g. 1029384756" required minLength={6} />
@@ -233,7 +176,6 @@ function PaymentBox({ order, onUpdate }: { order: Order; onUpdate: (o: Order) =>
           <button className="btn-primary w-full py-3" disabled={busy}>{busy ? <Spinner className="size-4" /> : 'I’ve paid — submit reference'}</button>
         </form>
       )}
-      {method === 'card' && <CardForm busy={busy} onPay={(card) => pay({ card })} />}
       <ErrorNote>{error}</ErrorNote>
     </section>
   );
@@ -244,15 +186,10 @@ export default function OrderPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useChannel(id ? `order:${id}` : null);
   useEffect(() => {
     if (!id) return;
     api<Order>(`/orders/${id}`).then(setOrder).catch((e) => setError(e.message));
-    const onOrder = (o: Order) => o.id === id && setOrder(o);
-    socket.on('order', onOrder);
-    return () => {
-      socket.off('order', onOrder);
-    };
+    return watchDoc<Order>(`publicOrders/${id}`, setOrder);
   }, [id]);
 
   if (error) {

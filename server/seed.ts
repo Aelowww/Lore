@@ -173,8 +173,8 @@ export const SEED_VOUCHERS: Voucher[] = [
   { code: 'LOREDAY', description: '₱50 off orders ₱400 and up', kind: 'fixed', value: 50, minSpend: 400, active: true },
 ];
 
-// Staff log in with a 4-digit PIN. Change these before using the app for real.
+// Staff accounts. PINs are set on first run (see seedStaff in db.ts) and are never kept in the repo.
 export const SEED_STAFF = [
-  { id: 'cashier', name: 'Cashier', role: 'cashier' as const, pin: '1234' },
-  { id: 'manager', name: 'Manager', role: 'manager' as const, pin: '9999' },
+  { id: 'cashier', name: 'Cashier', role: 'cashier' as const },
+  { id: 'manager', name: 'Manager', role: 'manager' as const },
 ];

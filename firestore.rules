@@ -1,0 +1,34 @@
+rules_version = '2';
+
+// The server (Cloud Function) uses the Admin SDK and isn't limited by these rules.
+// They only decide what browsers may read directly for live updates. Browsers never write.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isStaff() {
+      return request.auth != null && request.auth.token.role in ['cashier', 'manager'];
+    }
+
+    // "Now serving" board and the menu version stamp: anyone.
+    match /public/{docId} {
+      allow get: if true;
+    }
+
+    // One customer's order by its unguessable id. Listing all of them is not allowed.
+    match /publicOrders/{orderId} {
+      allow get: if true;
+    }
+
+    // Full orders and event inquiries: signed-in staff only.
+    match /orders/{orderId} {
+      allow read: if isStaff();
+    }
+    match /inquiries/{inquiryId} {
+      allow read: if isStaff();
+    }
+
+    // Everything else (staff PINs, customers, vouchers, counters…) is server-only.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

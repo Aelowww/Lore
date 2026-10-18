@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import type { MenuItem } from '../shared/types';
-import { socket } from './socket';
-import { useStaff } from '../store/staff';
+import { auth } from './firebase';
+import { watchDoc } from './live';
 
-export const getStaffToken = () => useStaff.getState().session?.token ?? null;
+/** The signed-in staff member's Firebase ID token (refreshed automatically when it nears expiry). */
+const getStaffToken = async () => (auth.currentUser ? auth.currentUser.getIdToken() : null);
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -12,7 +13,7 @@ export class ApiError extends Error {
 }
 
 export async function api<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
-  const token = path.startsWith('/staff') ? getStaffToken() : null;
+  const token = path.startsWith('/staff') ? await getStaffToken() : null;
   let res: Response;
   try {
     res = await fetch('/api' + path, {
@@ -47,10 +48,11 @@ export function useMenu() {
         })
         .catch((e) => setError(e.message));
     load();
-    socket.on('menu', load);
-    return () => {
-      socket.off('menu', load);
-    };
+    let first = true;
+    return watchDoc('public/menu', () => {
+      if (!first) load();
+      first = false;
+    });
   }, []);
   return { menu, error, setMenu };
 }
